@@ -1,0 +1,66 @@
+{
+  "synthetic": true,
+  "purpose": "Development-only threshold selection; never final evaluation",
+  "examples": [
+    {
+      "premise": "The elevator capacity is exactly eight passengers.",
+      "hypothesis": "The elevator capacity is exactly four passengers.",
+      "contradiction": true
+    },
+    {
+      "premise": "Pets are welcome in the guest rooms.",
+      "hypothesis": "Pets are prohibited in the guest rooms.",
+      "contradiction": true
+    },
+    {
+      "premise": "The warranty lasts exactly twelve months.",
+      "hypothesis": "The warranty lasts exactly twenty-four months.",
+      "contradiction": true
+    },
+    {
+      "premise": "Guests may check out after noon without a surcharge.",
+      "hypothesis": "Guests must pay a surcharge to check out after noon.",
+      "contradiction": true
+    },
+    {
+      "premise": "The museum is closed every Monday.",
+      "hypothesis": "The museum opens every Monday.",
+      "contradiction": true
+    },
+    {
+      "premise": "Bicycles are permitted on the ferry.",
+      "hypothesis": "Bicycles are not permitted on the ferry.",
+      "contradiction": true
+    },
+    {
+      "premise": "The pool is heated during winter.",
+      "hypothesis": "During winter, the pool water is heated.",
+      "contradiction": false
+    },
+    {
+      "premise": "The bus station has a ticket office.",
+      "hypothesis": "The bus station has a luggage room.",
+      "contradiction": false
+    },
+    {
+      "premise": "The hotel offers free wireless internet.",
+      "hypothesis": "The hotel provides complimentary Wi-Fi.",
+      "contradiction": false
+    },
+    {
+      "premise": "The workshop lasts two hours in 2022.",
+      "hypothesis": "The workshop lasts three hours in 2025.",
+      "contradiction": false
+    },
+    {
+      "premise": "The train has a dining car.",
+      "hypothesis": "The station has a waiting area.",
+      "contradiction": false
+    },
+    {
+      "premise": "The cinema sells popcorn.",
+      "hypothesis": "The cinema has comfortable seats.",
+      "contradiction": false
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+The reception desk provides visitor information.
+
+The maximum file upload size is 10 MB.
+
+The campus has a bicycle parking area.
+
+Employees must work on-site every Friday.

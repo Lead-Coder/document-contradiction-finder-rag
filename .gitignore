@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+models/
+data/uploads/
+data/results/
+data/datasets/
+chroma_db/
+*.sqlite3
+PROJECT_REPORT.md
+run_backend.ps1
+run_backend.sh
+run_frontend.ps1
+run_frontend.sh
+VERIFICATION.md 

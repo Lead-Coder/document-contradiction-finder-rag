@@ -1,0 +1,171 @@
+{
+  "execution_date": "2026-10-30",
+  "environment": {
+    "python": "3.12.10",
+    "system": "Windows",
+    "processor": "AMD64 Family 25 Model 124 Stepping 0, AuthenticAMD",
+    "device": "cpu"
+  },
+  "model": "cross-encoder/nli-deberta-v3-base",
+  "model_revision": "6c749ce3425cd33b46d187e45b92bbf96ee12ec7",
+  "tests": {
+    "passed": 17,
+    "warnings": 6,
+    "real_models": true
+  },
+  "multinli": {
+    "kind": "sentence_nli",
+    "dataset": "nyu-mll/multi_nli",
+    "split": "validation_matched",
+    "seed": 42,
+    "count": 300,
+    "accuracy": 0.8666666666666667,
+    "macro_precision": 0.8669906990699069,
+    "macro_recall": 0.8666666666666667,
+    "macro_f1": 0.8668143370250924,
+    "per_class": {
+      "contradiction": {
+        "precision": 0.9090909090909091,
+        "recall": 0.9,
+        "f1-score": 0.9045226130653267,
+        "support": 100.0
+      },
+      "entailment": {
+        "precision": 0.88,
+        "recall": 0.88,
+        "f1-score": 0.88,
+        "support": 100.0
+      },
+      "neutral": {
+        "precision": 0.8118811881188119,
+        "recall": 0.82,
+        "f1-score": 0.8159203980099502,
+        "support": 100.0
+      },
+      "accuracy": 0.8666666666666667,
+      "macro avg": {
+        "precision": 0.8669906990699069,
+        "recall": 0.8666666666666667,
+        "f1-score": 0.8668143370250924,
+        "support": 300.0
+      },
+      "weighted avg": {
+        "precision": 0.866990699069907,
+        "recall": 0.8666666666666667,
+        "f1-score": 0.8668143370250921,
+        "support": 300.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        90,
+        2,
+        8
+      ],
+      [
+        1,
+        88,
+        11
+      ],
+      [
+        8,
+        10,
+        82
+      ]
+    ],
+    "labels": [
+      "contradiction",
+      "entailment",
+      "neutral"
+    ],
+    "runtime_seconds": 50.15426500001922
+  },
+  "synthetic_initial": [
+    {
+      "top_k": 3,
+      "recall_at_k": 1.0,
+      "candidate_success_rate": 1.0,
+      "candidate_pairs": 33,
+      "true_positives": 11,
+      "false_positives": 4,
+      "false_negatives": 0,
+      "precision": 0.7333333333333333,
+      "recall": 1.0,
+      "f1": 0.846153846153846,
+      "runtime_seconds": 5.751554899994517
+    },
+    {
+      "top_k": 5,
+      "recall_at_k": 1.0,
+      "candidate_success_rate": 1.0,
+      "candidate_pairs": 35,
+      "true_positives": 11,
+      "false_positives": 4,
+      "false_negatives": 0,
+      "precision": 0.7333333333333333,
+      "recall": 1.0,
+      "f1": 0.846153846153846,
+      "runtime_seconds": 5.110076300014043
+    },
+    {
+      "top_k": 10,
+      "recall_at_k": 1.0,
+      "candidate_success_rate": 1.0,
+      "candidate_pairs": 35,
+      "true_positives": 11,
+      "false_positives": 4,
+      "false_negatives": 0,
+      "precision": 0.7333333333333333,
+      "recall": 1.0,
+      "f1": 0.846153846153846,
+      "runtime_seconds": 5.293322500016075
+    }
+  ],
+  "synthetic_regression_final": [
+    {
+      "top_k": 3,
+      "recall_at_k": 1.0,
+      "candidate_success_rate": 1.0,
+      "candidate_pairs": 33,
+      "true_positives": 11,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "runtime_seconds": 5.215890499996021
+    },
+    {
+      "top_k": 5,
+      "recall_at_k": 1.0,
+      "candidate_success_rate": 1.0,
+      "candidate_pairs": 35,
+      "true_positives": 11,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "runtime_seconds": 4.979366699990351
+    },
+    {
+      "top_k": 10,
+      "recall_at_k": 1.0,
+      "candidate_success_rate": 1.0,
+      "candidate_pairs": 35,
+      "true_positives": 11,
+      "false_positives": 0,
+      "false_negatives": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "runtime_seconds": 5.153244899993297
+    }
+  ],
+  "interpretation": "The synthetic benchmark was inspected during debugging. Revised results are regression measurements, not an independent held-out generalization estimate.",
+  "artifacts": {
+    "multinli": "evaluation_713d56502d2f41d1b162aae354a9b59f",
+    "synthetic_initial": "evaluation_4bc5463e8b794cca868a5a677592930f",
+    "synthetic_final": "evaluation_d5dbc78b381f468495510c4b44d536c6"
+  }
+}
