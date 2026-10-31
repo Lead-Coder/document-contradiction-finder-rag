@@ -1,0 +1,469 @@
+{
+  "synthetic": true,
+  "seed": 42,
+  "description": "Manually specified labels; fixed development/test split. No training. Related template families appear in both splits, limiting independence.",
+  "examples": [
+    {
+      "id": "fin_000",
+      "split": "development",
+      "premise": "The daily transfer limit for standard accounts is INR 50,000.",
+      "hypothesis": "The daily transfer limit for standard accounts is INR 20,000.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_001",
+      "split": "development",
+      "premise": "The daily withdrawal ceiling for standard accounts is INR 50,000.",
+      "hypothesis": "The daily withdrawal ceiling for standard accounts is INR 20,000.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_002",
+      "split": "development",
+      "premise": "The monthly maintenance fee for standard accounts is INR 100.",
+      "hypothesis": "The monthly maintenance fee for standard accounts is INR 200.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_003",
+      "split": "development",
+      "premise": "Refunds for standard accounts are completed in exactly five business days.",
+      "hypothesis": "Refunds for standard accounts are completed in exactly eight business days.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_004",
+      "split": "development",
+      "premise": "The annual interest rate for standard accounts is exactly 4 percent.",
+      "hypothesis": "The annual interest rate for standard accounts is exactly 6 percent.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_005",
+      "split": "development",
+      "premise": "Minors are eligible to open standard accounts.",
+      "hypothesis": "Minors are not eligible to open standard accounts.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_006",
+      "split": "development",
+      "premise": "Identity verification is required for standard account holders.",
+      "hypothesis": "Identity verification is not required for standard account holders.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_007",
+      "split": "development",
+      "premise": "Complaints from standard account holders are resolved in exactly seven calendar days.",
+      "hypothesis": "Complaints from standard account holders are resolved in exactly fourteen calendar days.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_008",
+      "split": "development",
+      "premise": "International card payments are permitted for standard accounts.",
+      "hypothesis": "International card payments are prohibited for standard accounts.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_009",
+      "split": "development",
+      "premise": "Customers with standard accounts may withdraw INR 50,000 daily.",
+      "hypothesis": "The daily cash withdrawal ceiling for standard accounts is INR 50,000.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_010",
+      "split": "development",
+      "premise": "Refunds for standard accounts are completed within five working days.",
+      "hypothesis": "Refunds for standard accounts are completed within five business days.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_011",
+      "split": "development",
+      "premise": "The annual maintenance fee for standard accounts is INR 500.",
+      "hypothesis": "The yearly account maintenance charge for standard accounts is INR 500.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_012",
+      "split": "development",
+      "premise": "The annual interest rate on standard deposits is 5 percent.",
+      "hypothesis": "The yearly interest rate on standard deposits is 5%.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_013",
+      "split": "development",
+      "premise": "Customers may close standard accounts without paying a fee.",
+      "hypothesis": "Closing a standard account is free of charge.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_014",
+      "split": "development",
+      "premise": "Customers must verify their identity to open standard accounts.",
+      "hypothesis": "Identity verification is mandatory when opening standard accounts.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_015",
+      "split": "development",
+      "premise": "The daily transfer limit for standard accounts is INR 50,000.",
+      "hypothesis": "Customer support operates on weekdays.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_016",
+      "split": "development",
+      "premise": "The annual maintenance fee for standard accounts is INR 500.",
+      "hypothesis": "Customers receive replacement cards by post.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_017",
+      "split": "development",
+      "premise": "Internal policy reference - Document 2 of 2 - Version 1.5 - Effective 1 October 2026",
+      "hypothesis": "CedarBank is a fictional organization; no policy below describes a real financial institution.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_018",
+      "split": "development",
+      "premise": "Copyright 2026. All rights reserved.",
+      "hypothesis": "The daily withdrawal ceiling for standard accounts is INR 50,000.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_019",
+      "split": "development",
+      "premise": "Refunds for standard accounts are processed within five business days.",
+      "hypothesis": "Refunds for standard accounts are processed within ten business days.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_020",
+      "split": "development",
+      "premise": "The bank provides statements for standard accounts electronically.",
+      "hypothesis": "The help desk has a wheelchair-accessible entrance.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_021",
+      "split": "development",
+      "premise": "Basic account holders may withdraw INR 20,000 daily.",
+      "hypothesis": "Premium account holders may withdraw INR 50,000 daily.",
+      "expected": "Needs Review",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_022",
+      "split": "development",
+      "premise": "The refund processing period was seven days in 2024.",
+      "hypothesis": "The refund processing period is three days in 2026.",
+      "expected": "Policy Change",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_023",
+      "split": "development",
+      "premise": "The daily transfer limit for standard accounts is INR 50,000.",
+      "hypothesis": "The daily transfer limit for standard accounts is INR 20,000.",
+      "expected": "Policy Change",
+      "metadata_a": {
+        "version": "1.0",
+        "organization": "CedarBank"
+      },
+      "metadata_b": {
+        "version": "2.0",
+        "organization": "CedarBank"
+      }
+    },
+    {
+      "id": "fin_024",
+      "split": "development",
+      "premise": "The maintenance fee for standard accounts is USD 10 monthly.",
+      "hypothesis": "The maintenance fee for standard accounts is INR 800 monthly.",
+      "expected": "Needs Review",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_025",
+      "split": "test",
+      "premise": "The daily transfer limit for premium accounts is INR 80,000.",
+      "hypothesis": "The daily transfer limit for premium accounts is INR 30,000.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_026",
+      "split": "test",
+      "premise": "The daily withdrawal ceiling for premium accounts is INR 80,000.",
+      "hypothesis": "The daily withdrawal ceiling for premium accounts is INR 30,000.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_027",
+      "split": "test",
+      "premise": "The monthly maintenance fee for premium accounts is INR 100.",
+      "hypothesis": "The monthly maintenance fee for premium accounts is INR 200.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_028",
+      "split": "test",
+      "premise": "Refunds for premium accounts are completed in exactly five business days.",
+      "hypothesis": "Refunds for premium accounts are completed in exactly eight business days.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_029",
+      "split": "test",
+      "premise": "The annual interest rate for premium accounts is exactly 4 percent.",
+      "hypothesis": "The annual interest rate for premium accounts is exactly 6 percent.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_030",
+      "split": "test",
+      "premise": "Minors are eligible to open premium accounts.",
+      "hypothesis": "Minors are not eligible to open premium accounts.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_031",
+      "split": "test",
+      "premise": "Identity verification is required for premium account holders.",
+      "hypothesis": "Identity verification is not required for premium account holders.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_032",
+      "split": "test",
+      "premise": "Complaints from premium account holders are resolved in exactly seven calendar days.",
+      "hypothesis": "Complaints from premium account holders are resolved in exactly fourteen calendar days.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_033",
+      "split": "test",
+      "premise": "International card payments are permitted for premium accounts.",
+      "hypothesis": "International card payments are prohibited for premium accounts.",
+      "expected": "Contradiction",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_034",
+      "split": "test",
+      "premise": "Customers with premium accounts may withdraw INR 80,000 daily.",
+      "hypothesis": "The daily cash withdrawal ceiling for premium accounts is INR 80,000.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_035",
+      "split": "test",
+      "premise": "Refunds for premium accounts are completed within five working days.",
+      "hypothesis": "Refunds for premium accounts are completed within five business days.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_036",
+      "split": "test",
+      "premise": "The annual maintenance fee for premium accounts is INR 500.",
+      "hypothesis": "The yearly account maintenance charge for premium accounts is INR 500.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_037",
+      "split": "test",
+      "premise": "The annual interest rate on premium deposits is 5 percent.",
+      "hypothesis": "The yearly interest rate on premium deposits is 5%.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_038",
+      "split": "test",
+      "premise": "Customers may close premium accounts without paying a fee.",
+      "hypothesis": "Closing a premium account is free of charge.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_039",
+      "split": "test",
+      "premise": "Customers must verify their identity to open premium accounts.",
+      "hypothesis": "Identity verification is mandatory when opening premium accounts.",
+      "expected": "Agreement",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_040",
+      "split": "test",
+      "premise": "The daily transfer limit for premium accounts is INR 80,000.",
+      "hypothesis": "Customer support operates on weekdays.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_041",
+      "split": "test",
+      "premise": "The annual maintenance fee for premium accounts is INR 500.",
+      "hypothesis": "Customers receive replacement cards by post.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_042",
+      "split": "test",
+      "premise": "Internal policy reference - Document 2 of 2 - Version 1.5 - Effective 1 October 2026",
+      "hypothesis": "CedarBank is a fictional organization; no policy below describes a real financial institution.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_043",
+      "split": "test",
+      "premise": "Copyright 2026. All rights reserved.",
+      "hypothesis": "The daily withdrawal ceiling for premium accounts is INR 80,000.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_044",
+      "split": "test",
+      "premise": "Refunds for premium accounts are processed within five business days.",
+      "hypothesis": "Refunds for premium accounts are processed within ten business days.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_045",
+      "split": "test",
+      "premise": "The bank provides statements for premium accounts electronically.",
+      "hypothesis": "The help desk has a wheelchair-accessible entrance.",
+      "expected": "Neutral",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_046",
+      "split": "test",
+      "premise": "Basic account holders may withdraw INR 20,000 daily.",
+      "hypothesis": "Premium account holders may withdraw INR 50,000 daily.",
+      "expected": "Needs Review",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_047",
+      "split": "test",
+      "premise": "The refund processing period was seven days in 2024.",
+      "hypothesis": "The refund processing period is three days in 2026.",
+      "expected": "Policy Change",
+      "metadata_a": {},
+      "metadata_b": {}
+    },
+    {
+      "id": "fin_048",
+      "split": "test",
+      "premise": "The daily transfer limit for premium accounts is INR 80,000.",
+      "hypothesis": "The daily transfer limit for premium accounts is INR 30,000.",
+      "expected": "Policy Change",
+      "metadata_a": {
+        "version": "1.0",
+        "organization": "CedarBank"
+      },
+      "metadata_b": {
+        "version": "2.0",
+        "organization": "CedarBank"
+      }
+    },
+    {
+      "id": "fin_049",
+      "split": "test",
+      "premise": "The maintenance fee for premium accounts is USD 10 monthly.",
+      "hypothesis": "The maintenance fee for premium accounts is INR 800 monthly.",
+      "expected": "Needs Review",
+      "metadata_a": {},
+      "metadata_b": {}
+    }
+  ]
+}

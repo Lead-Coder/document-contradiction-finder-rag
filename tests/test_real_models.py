@@ -43,3 +43,37 @@ def test_real_inference_and_retrieval():
         answer=client.post("/ask",json={"question":"Can students submit assignments after the deadline?"}).json()
         assert answer["evidence"] and answer["conflicts"]
         for did in ids:assert client.delete("/documents/"+did).status_code==200
+
+
+@pytest.mark.models
+@pytest.mark.skipif(os.getenv("DOCU_TEST_MODELS")!="1",reason="Requires cached real models")
+def test_existing_novapay_pdfs_end_to_end():
+    import sqlite3,json,hashlib
+    from backend.core.config import ROOT
+    from backend.services.document_loader import extract
+    from backend.services.preprocessing import statements
+    from backend.services.context_verification import non_policy
+    from backend.services import vector_store
+    from backend.services.contradiction_engine import analyze
+    registry=ROOT/"data"/"registry.sqlite3"
+    if not registry.exists():pytest.skip("Existing NovaPay documents not available")
+    with sqlite3.connect(registry.resolve().as_uri()+"?mode=ro",uri=True) as db:
+        docs=[json.loads(row[0]) for row in db.execute("SELECT payload FROM documents")]
+    docs=[d for d in docs if "novapay" in d["filename"].lower() and d["filetype"]==".pdf"]
+    if len(docs)!=2:pytest.skip("Exactly two existing NovaPay PDFs are required")
+    hashes={};ids=[]
+    for doc in docs:
+        source=ROOT/"data"/"uploads"/(doc["id"]+doc["filetype"])
+        content=source.read_bytes();hashes[source]=hashlib.sha256(content).hexdigest()
+        rows=statements(extract(content,doc["filename"]),doc["id"],doc["filename"])
+        assert all(not non_policy(r["text"]) for r in rows)
+        assert all(r["section"] and r["version"] for r in rows)
+        vector_store.add(rows);ids.append(doc["id"])
+    try:
+        result=analyze(ids,threshold=.95,mode="differences")
+        assert any(r["classification"]=="Policy Change" for r in result["results"])
+        assert all(r["classification"]!="Contradiction" for r in result["results"])
+        assert result["rejected_pairs"]>0
+        assert all(hashlib.sha256(path.read_bytes()).hexdigest()==value for path,value in hashes.items())
+    finally:
+        for did in ids:vector_store.collection().delete(where={"document_id":did})

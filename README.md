@@ -1,5 +1,8 @@
 # DocuConflict AI
 
+> **31 October 2026 update:** The existing detector now filters document furniture and financial topics, separates policy revisions from contradictions, and uses a versioned rebuilt index. **42 tests passed.** See [IMPROVEMENT_REPORT.md](IMPROVEMENT_REPORT.md) for the audit, current before/after measurements, changed-file list, rebuild instructions and limitations, and [FINANCIAL_EVALUATION_RESULTS.json](FINANCIAL_EVALUATION_RESULTS.json) for measured results. Earlier figures below describe the previous verification run.
+
+
 Intelligent Cross-Document Contradiction Detection Using Retrieval-Augmented Generation and Natural Language Inference.
 
 ## Abstract and problem statement

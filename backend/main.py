@@ -11,7 +11,7 @@ from backend.core import storage
 from backend.core.config import DATA, MAX_MB, NLI_ID, OFFLINE
 from backend.schemas.models import CompareRequest, EvaluationRequest, AskRequest, DocumentInfo, JobInfo
 from backend.services.document_loader import extract
-from backend.services.preprocessing import statements
+from backend.services.preprocessing import statements, document_metadata, INDEX_SCHEMA
 
 log=logging.getLogger(__name__)
 executor=ThreadPoolExecutor(max_workers=1)
@@ -80,16 +80,17 @@ def upload(files: list[UploadFile]=File(...)):
             did=hashlib.sha256(content).hexdigest()
             existing=storage.get("documents",did)
             if existing:
-                output.append(dict(document=existing,duplicate=True)); continue
+                output.append(dict(document=existing,duplicate=True,requires_rebuild=existing.get("index_schema")!=INDEX_SCHEMA)); continue
             indexed=False
             try:
                 pages=extract(content,filename)
+                vector_store.collection()  # Refuse stale indexes before any upload mutation.
                 rows=statements(pages,did,filename)
                 indexed=True
                 vector_store.add(rows)
                 (DATA/"uploads"/(did+Path(filename).suffix.lower())).write_bytes(content)
                 doc=dict(id=did,filename=filename,filetype=Path(filename).suffix.lower(),
-                    statements=len(rows),preview="\n".join(t for _,t in pages)[:5000])
+                    statements=len(rows),index_schema=INDEX_SCHEMA,metadata=document_metadata(pages),preview="\n".join(t for _,t in pages)[:5000])
                 storage.save("documents",did,doc)
                 output.append(dict(document=doc,duplicate=False))
             except Exception as exc:
@@ -126,7 +127,7 @@ def compare(request: CompareRequest):
     def work(update):
         require_documents(ids)
         from backend.services.contradiction_engine import analyze
-        return analyze(ids,request.threshold,request.top_k,request.bidirectional,update)
+        return analyze(ids,request.threshold,request.top_k,request.bidirectional,update,request.min_similarity,request.mode,request.debug)
     return new_job("analysis",work)
 
 @app.get("/analysis/results/{analysis_id}",response_model=JobInfo)
@@ -180,7 +181,7 @@ def ask(request: AskRequest):
     evidence_ids={r["id"] for r in evidence}
     conflicts=[]
     for job in storage.listing("jobs"):
-        if job["kind"]=="analysis" and job["status"]=="complete":
+        if job["kind"]=="analysis" and job["status"]=="complete" and job["result"].get("analysis_version")=="financial-v2":
             conflicts.extend(r for r in job["result"]["results"] if r["classification"]=="Contradiction"
                 and r["a"]["document_id"] in ids and r["b"]["document_id"] in ids
                 and (r["a"]["id"] in evidence_ids or r["b"]["id"] in evidence_ids))
@@ -188,3 +189,20 @@ def ask(request: AskRequest):
         "No relevant confirmed conflicts in saved analyses. Run a comparison to test for contradictions. ")
     return dict(answer=answer+"Retrieved passages follow; this is an evidence summary, not a generated factual answer.",
         evidence=evidence,conflicts=conflicts[:10])
+
+
+@app.get("/documents/index/status")
+def index_status():
+    from backend.services.vector_store import index_status as status
+    return status()
+
+
+@app.post("/documents/index/rebuild",response_model=JobInfo)
+def rebuild_index():
+    from backend.services.vector_store import rebuild
+    return new_job("index",rebuild)
+
+
+@app.get("/documents/index/results/{index_id}",response_model=JobInfo)
+def index_result(index_id: str):
+    return fetch_job(index_id,"index")

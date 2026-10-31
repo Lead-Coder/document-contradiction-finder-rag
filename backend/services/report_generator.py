@@ -7,7 +7,9 @@ def flatten(result):
         statement_a=r["a"]["text"],context_a=r["a"]["parent"],
         document_b=r["b"]["filename"],page_b=r["b"]["page"] or "N/A",
         statement_b=r["b"]["text"],context_b=r["b"]["parent"],classification=r["classification"],
-        **r["probabilities"],explanation=r["explanation"]) for r in result["results"]]
+        section_a=r["a"].get("section",""),section_b=r["b"].get("section",""),topic=r.get("topic","unknown"),
+        nli_evaluated=r.get("nli_evaluated",True),
+        **(r.get("probabilities") or dict(contradiction=None,entailment=None,neutral=None)),explanation=r["explanation"]) for r in result["results"]]
 
 def generate(result,format):
     if format=="json":
@@ -34,7 +36,9 @@ def generate(result,format):
             content+=f"<p><b>{escape(key)}:</b> {escape(str(value))}</p>"
         content+="<p>Scores are uncalibrated probabilities. Review source context.</p>"
         for row in flatten(result):
-            content+=f'<h2>{escape(row["classification"])} ({row["contradiction"]:.3f} contradiction)</h2>'
+            content+=f'<h2>{escape(row["classification"])}</h2>'
+            signal=f'{row["contradiction"]:.3f}' if row["contradiction"] is not None else "Not evaluated; rejected by scope checks"
+            content+=f'<p>Raw NLI contradiction signal: {signal}. This is not a confirmed-conflict probability.</p>' 
             for side in ("a","b"):
                 content+=f'<p><b>{escape(row["document_"+side])} ? page {row["page_"+side]}</b><br>{escape(row["statement_"+side])}</p>'
                 content+=f'<p>Context: {escape(row["context_"+side])}</p>'

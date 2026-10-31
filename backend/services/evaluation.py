@@ -34,7 +34,7 @@ def save_result(result):
             writer=csv.DictWriter(f,fieldnames=list(rows[0]));writer.writeheader();writer.writerows(rows)
     import plotly.express as px
     if "confusion_matrix" in result:
-        fig=px.imshow(result["confusion_matrix"],x=LABELS,y=LABELS,text_auto=True,
+        fig=px.imshow(result["confusion_matrix"],x=result.get("labels",LABELS),y=result.get("labels",LABELS),text_auto=True,
             labels=dict(x="Predicted",y="Actual"),title="NLI confusion matrix")
     else:
         fig=px.bar(result["experiments"],x="top_k",y=["recall_at_k","precision","recall","f1"],barmode="group")
@@ -143,4 +143,92 @@ def document_evaluation(request,update):
         success_definition="Fraction of positive cases with at least one gold pair retrieved. Recall@K is pooled unique gold-pair coverage from bidirectional retrieval."))
 
 def run(request,update=lambda p,m:None):
+    if request.dataset=="financial":return financial_evaluation(request,update)
     return document_evaluation(request,update) if request.dataset=="documents" else sentence_evaluation(request,update)
+
+
+def financial_document_evaluation(examples,request,update):
+    """Use actual production retrieval with an isolated Chroma collection."""
+    import chromadb
+    from chromadb.config import Settings
+    from unittest.mock import patch
+    from backend.services import vector_store
+    from backend.services.preprocessing import statements,INDEX_SCHEMA
+    from backend.services.contradiction_engine import analyze
+    selected=[examples[i] for i in (0,2,4,10,14)]
+    folder=DATA/"benchmarks"/"financial_documents";folder.mkdir(parents=True,exist_ok=True)
+    all_rows=[];source_ids={};gold=set()
+    for side,key in (("a","premise"),("b","hypothesis")):
+        text="\n\n".join(r[key] for r in selected)
+        text+="\n\n"+("The customer support team operates on weekdays." if side=="a" else "Replacement cards are delivered by post.")
+        text+="\n\nInternal policy reference - Document 1 of 2 - Version 1.0"
+        filename="financial_"+side+".txt"
+        (folder/filename).write_text(text,encoding="utf-8")
+        extracted=statements([(0,text)],"financial_"+side,filename)
+        all_rows+=extracted
+        for item in extracted:
+            match=next((r for r in selected if r[key]==item["text"]),None)
+            if match:source_ids[item["id"]]=match["id"]+side
+    for row in selected[:3]:
+        left=next(r["id"] for r in all_rows if r["document_id"]=="financial_a" and r["text"]==row["premise"])
+        right=next(r["id"] for r in all_rows if r["document_id"]=="financial_b" and r["text"]==row["hypothesis"])
+        gold.add(pair_key(left,right))
+    (folder/"ground_truth.json").write_text(json.dumps(dict(synthetic=True,source_statement_ids=source_ids,
+        expected_conflicts=[list(p) for p in sorted(gold)]),indent=2),encoding="utf-8")
+    client=chromadb.EphemeralClient(settings=Settings(anonymized_telemetry=False))
+    col=client.create_collection("financial_"+uuid.uuid4().hex,embedding_function=None,
+        metadata={"index_schema":INDEX_SCHEMA},configuration={"hnsw":{"space":"cosine"}})
+    try:
+        vector_store.add(all_rows,target=col)
+        with patch.object(vector_store,"collection",return_value=col):
+            result=analyze(["financial_a","financial_b"],request.threshold,5,True,update,
+                min_similarity=getattr(request,"min_similarity",.35),debug=True)
+        retrieved={pair_key(r["a"]["id"],r["b"]["id"]) for r in result["results"]}
+        raw_retrieved=retrieved|{pair_key(r["a_id"],r["b_id"]) for r in result["diagnostics"]["rejections"]}
+        detected={pair_key(r["a"]["id"],r["b"]["id"]) for r in result["results"] if r["classification"]=="Contradiction"}
+        tp=len(gold & detected);fp=len(detected-gold);fn=len(gold-detected)
+        p=tp/(tp+fp) if tp+fp else 0;r=tp/(tp+fn) if tp+fn else 0
+        return dict(precision=p,recall=r,f1=2*p*r/(p+r) if p+r else 0,false_positives=fp,false_negatives=fn,
+            retrieval_recall_at_5=len(raw_retrieved & gold)/len(gold),post_filter_recall_at_5=len(retrieved & gold)/len(gold),
+            candidate_rejection_rate=result["candidate_rejection_rate"],candidate_pairs=result["candidate_pairs"],
+            retrieved_pairs=result["retrieved_pairs"],nli_pairs=result["nli_pairs"],average_analysis_seconds=result["runtime_seconds"],
+            source_statement_ids=source_ids,analysis=result)
+    finally:client.delete_collection(col.name)
+
+
+def financial_evaluation(request,update):
+    from backend.services.contradiction_engine import decide_pair
+    from backend.services.embeddings import encode
+    from scripts.financial_benchmark import metrics
+    import numpy as np
+    path=DATA/"benchmarks"/"financial_pairs.json"
+    if not path.exists():raise ValueError("Generate the financial benchmark with python -m scripts.financial_benchmark --stage tune")
+    payload=json.loads(path.read_text(encoding="utf-8"))
+    split=request.split if request.split in ("development","test") else "test"
+    rows=[r for r in payload["examples"] if r["split"]==split]
+    started=time.perf_counter()
+    inputs=[(r["premise"],r["hypothesis"]) for r in rows]
+    probs=predict(inputs+[(b,a) for a,b in inputs],lambda p:update(.6*p,"Financial NLI evaluation"))
+    vectors=encode([r["premise"] for r in rows]+[r["hypothesis"] for r in rows])
+    predictions=[]
+    for i,row in enumerate(rows):
+        a=dict(id=row["id"]+"a",text=row["premise"],parent=row["premise"],document_id="a",filename="pair_a",page=0,**row["metadata_a"])
+        b=dict(id=row["id"]+"b",text=row["hypothesis"],parent=row["hypothesis"],document_id="b",filename="pair_b",page=0,**row["metadata_b"])
+        result=decide_pair(a,b,probs[i],probs[i+len(rows)],request.threshold,
+            similarity=float(np.dot(vectors[i],vectors[i+len(rows)])),min_similarity=getattr(request,"min_similarity",.35))
+        predictions.append(dict(**row,decision=result["classification"],details=result,forward=probs[i],reverse=probs[i+len(rows)]))
+    scored=metrics(predictions)
+    # Scope/version examples have five-class labels and are excluded from raw three-class NLI scoring.
+    simple=[r for r in predictions if r["expected"] in ("Contradiction","Agreement","Neutral")]
+    mapping={"Contradiction":"contradiction","Agreement":"entailment","Neutral":"neutral"}
+    actual=[mapping[r["expected"]] for r in simple]
+    raw=[max(r["forward"],key=r["forward"].get) for r in simple]
+    raw_metrics=classification_report(actual,raw,labels=LABELS,output_dict=True,zero_division=0)
+    e2e=financial_document_evaluation(rows,request,lambda p,m:update(.6+.4*p,m))
+    update(1,"Complete")
+    return save_result(dict(kind="financial_policy",synthetic=True,split=split,threshold=request.threshold,
+        benchmark_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),**scored,
+        raw_nli=dict(count=len(simple),accuracy=accuracy_score(actual,raw),per_class=raw_metrics,
+            labels=LABELS,confusion_matrix=confusion_matrix(actual,raw,labels=LABELS).tolist()),
+        end_to_end=e2e,examples=predictions,average_analysis_seconds=(time.perf_counter()-started)/len(rows),
+        limitations="Small synthetic template families overlap across development/test. Financial document examples derive from this split. Raw NLI metrics exclude context/version cases."))

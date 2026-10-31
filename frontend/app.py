@@ -48,6 +48,16 @@ def show_evaluation(result):
         only_wrong=st.checkbox("Show misclassified examples only")
         examples=[r for r in result["examples"] if not only_wrong or not r["correct"]]
         st.dataframe(examples,use_container_width=True)
+    elif result["kind"]=="financial_policy":
+        st.info("Synthetic financial-policy evaluation. Raw NLI and the final scope-aware decision are measured separately.")
+        for panel,key in zip(st.columns(4),("precision","recall","f1","false_positive_rate")):
+            panel.metric(key.replace("_"," ").title(),f'{result[key]:.3f}')
+        st.plotly_chart(px.imshow(result["confusion_matrix"],x=result["labels"],y=result["labels"],text_auto=True,labels=dict(x="Predicted",y="Actual")),use_container_width=True)
+        st.write("End-to-end retrieval measurements")
+        st.json({key:value for key,value in result["end_to_end"].items() if key not in ("analysis","source_statement_ids")})
+        with st.expander("Independent raw sentence-pair NLI metrics"):st.json(result["raw_nli"])
+        only_wrong=st.checkbox("Misclassified financial pairs only",True)
+        st.dataframe([{k:r[k] for k in ("id","premise","hypothesis","expected","decision")} for r in result["examples"] if not only_wrong or r["expected"]!=r["decision"]],use_container_width=True)
     else:
         st.info("Synthetic document benchmark. These measurements are separate from sentence-level NLI accuracy.")
         st.dataframe(result["experiments"],use_container_width=True)
@@ -70,7 +80,7 @@ def show_evaluation(result):
 def job_panel(kind):
     jid=st.session_state.get(kind+"_job")
     if not jid:return
-    job=data("GET",f"/{kind}/results/{jid}")
+    job=data("GET",f"/documents/index/results/{jid}" if kind=="index" else f"/{kind}/results/{jid}")
     if not job:return
     st.progress(float(job["progress"]),text=job["message"])
     if job["status"]=="failed":
@@ -78,40 +88,60 @@ def job_panel(kind):
     elif job["status"]=="complete":
         st.session_state[kind+"_result"]=job["result"]
         if kind=="evaluation":show_evaluation(job["result"])
+        elif kind=="index":st.success(f'Index rebuilt: {job["result"]["claims"]} claims. Originals retained. Refresh the page to update counts.')
         else:st.success(f'Analysis complete: {job["result"]["candidate_pairs"]} candidate pairs. Use Refresh results below.')
 
 def highlighted(text,other):
-    tokens=text.split();comparison=other.split()
-    matcher=difflib.SequenceMatcher(a=tokens,b=comparison)
-    unchanged=set()
-    for block in matcher.get_matching_blocks():unchanged.update(range(block.a,block.a+block.size))
-    return " ".join(html.escape(token) if i in unchanged else "<mark>"+html.escape(token)+"</mark>" for i,token in enumerate(tokens))
+    import re
+    # Highlight changed meaningful tokens, not every function word in a paraphrase.
+    tokens=text.split();comparison=set(other.lower().split())
+    meaningful=re.compile(r"[0-9%]|\b(?:not|no|never|prohibited|required|permitted|mandatory|optional|basic|premium|standard|if|unless)\b",re.I)
+    return " ".join("<mark>"+html.escape(token)+"</mark>" if token.lower() not in comparison and meaningful.search(token) else html.escape(token) for token in tokens)
+
 
 def comparison_cards(rows):
-    for i,row in enumerate(rows):
+    labels={"Contradiction":"Potential Conflict - High NLI Signal","Needs Review":"Possible Conflict - Needs Review",
+        "Policy Change":"Policy Revision / Version Difference","Agreement":"Agreement","Neutral":"Neutral / Unrelated"}
+    for row in rows:
         with st.container(border=True):
-            st.subheader(f'{row["classification"]} ? {row["probabilities"]["contradiction"]:.1%} contradiction probability')
+            label=row["classification"]
+            if label=="Contradiction":st.error(labels[label])
+            elif label=="Needs Review":st.warning(labels[label])
+            elif label=="Agreement":st.success(labels[label])
+            else:st.info(labels.get(label,label))
+            st.caption("Topic: "+row.get("topic","not recorded"))
             a,b=row["a"],row["b"]
-            for col,left,right in ((st.columns(2),a,b),):
-                for panel,claim,other in ((col[0],left,right),(col[1],right,left)):
-                    panel.markdown(f'**{claim["filename"]}** ? Page {claim["page"] or "not available"}')
-                    panel.markdown('<div class="claim">'+highlighted(claim["text"],other["text"])+"</div>",unsafe_allow_html=True)
-                    with panel.expander("Supporting parent passage"):
-                        st.write(claim["parent"])
+            for panel,claim,other in zip(st.columns(2),(a,b),(b,a)):
+                panel.markdown(f'**{claim["filename"]}** | Page {claim["page"] or "not available"} | Section {claim.get("section") or "not recorded"}')
+                if claim.get("section_title"):panel.caption(claim["section_title"])
+                panel.markdown('<div class="claim">'+highlighted(claim["text"],other["text"])+"</div>",unsafe_allow_html=True)
+                with panel.expander("Exact supporting passage and scope"):
+                    st.write(claim["parent"])
+                    st.json({key:claim.get(key,"") for key in ("organization","version","effective_date","account_category","section")})
+            context=row.get("context_verification")
+            if context:
+                st.caption("Context: "+("no explicit mismatch found; implicit scope still requires review" if context["compatible"] else "; ".join(context["warnings"]+context["policy_changes"])))
             st.write(row["explanation"])
-            with st.expander("Model probabilities and directional evidence"):
-                st.json({k:row[k] for k in ("probabilities","forward","reverse","context_warnings")})
+            with st.expander("Technical model details - uncalibrated signals"):
+                scores=row.get("probabilities")
+                if scores:
+                    st.caption(f'Raw NLI contradiction probability: {scores["contradiction"]:.1%}. This is not a confirmed-conflict probability.')
+                else:st.write("NLI not run: the scope verifier requires review before model inference.")
+                st.json({key:row.get(key) for key in ("probabilities","forward","reverse","retrieval_similarity","context_warnings","nli_evaluated")})
 
-st.sidebar.markdown("## ?? DocuConflict AI")
+
+st.sidebar.markdown("## DocuConflict AI")
 st.sidebar.caption("LOCAL DOCUMENT INTELLIGENCE")
 page=st.sidebar.radio("Workspace",["Dashboard","Upload Documents","Contradiction Finder","Ask About Documents","Evaluation Dashboard","Export Reports"])
 st.sidebar.divider()
-st.sidebar.caption("Offline inference ? Evidence first")
+st.sidebar.caption("Offline inference | Evidence first")
 st.title(page)
 st.caption("DocuConflict AI / Cross-document consistency workspace")
 docs=data("GET","/documents") or []
 lookup={d["id"]:d for d in docs}
 result=st.session_state.get("analysis_result")
+if result and result.get("analysis_version")!="financial-v2":
+    st.warning("Historical analysis from the old detector: rerun comparison before interpreting these results as current.")
 if page=="Dashboard":
     st.markdown("### Find where your documents disagree")
     st.write("Index policies, reports and specifications, then compare related claims with local natural language inference.")
@@ -130,8 +160,17 @@ if page=="Dashboard":
         selected=st.selectbox("Load a saved analysis",[j["id"] for j in complete])
         if st.button("Load analysis"):
             job=data("GET",f"/analysis/results/{selected}")
-            if job:st.session_state.update(analysis_job=selected,analysis_result=job["result"]);st.rerun()
+            if job:
+                st.session_state.update(analysis_job=selected,analysis_result=job["result"])
+                st.rerun()
 elif page=="Upload Documents":
+    status=data("GET","/documents/index/status") or {}
+    if isinstance(status,dict) and status.get("requires_rebuild"):
+        st.warning("Existing statements use the old extraction format. Rebuild before uploading or comparing; original source documents will be preserved.")
+    if st.button("Rebuild claim index from existing uploads"):
+        job=data("POST","/documents/index/rebuild")
+        if job:st.session_state["index_job"]=job["id"]
+    job_panel("index")
     uploads=st.file_uploader("Add PDF, DOCX or UTF-8 TXT documents",type=["pdf","docx","txt"],accept_multiple_files=True)
     st.caption("Text PDFs only; OCR is not included. Default maximum size: 20 MB per file.")
     if st.button("Upload and index",disabled=not uploads,type="primary"):
@@ -143,7 +182,7 @@ elif page=="Upload Documents":
                 else:st.success(f'{item["document"]["filename"]}: '+("already indexed" if item["duplicate"] else "indexed"))
             docs=data("GET","/documents") or []
     for doc in docs:
-        with st.expander(f'{doc["filename"]} ? {doc["statements"]} statements'):
+        with st.expander(f'{doc["filename"]} | {doc["statements"]} statements'):
             st.text(doc["preview"])
             if st.button("Delete document",key=doc["id"]):
                 if data("DELETE","/documents/"+doc["id"]):st.rerun()
@@ -160,20 +199,34 @@ elif page=="Contradiction Finder":
     threshold=one.slider("Contradiction threshold",.5,1.,.75,.01)
     k=two.slider("Retrieval top-K",1,20,5)
     both=three.checkbox("Verify both directions",True)
+    mode=st.radio("Analysis purpose",["Strict contradiction detection","Policy difference analysis"],horizontal=True)
+    min_similarity=st.slider("Minimum retrieval cosine similarity",0.,1.,.35,.01)
+    debug=st.checkbox("Save pair diagnostics in backend logs",False)
     st.caption("0.75 is an initial threshold. Scores are uncalibrated. Scope checks can require human review.")
     if st.button("Compare documents",disabled=len(selected)<2,type="primary"):
-        job=data("POST","/analysis/compare",json=dict(document_ids=selected,threshold=threshold,top_k=k,bidirectional=both))
+        job=data("POST","/analysis/compare",json=dict(document_ids=selected,threshold=threshold,top_k=k,bidirectional=both,min_similarity=min_similarity,mode="differences" if mode=="Policy difference analysis" else "strict",debug=debug))
         if job:st.session_state["analysis_job"]=job["id"]
     job_panel("analysis")
     if st.button("Refresh results"):st.rerun()
     result=st.session_state.get("analysis_result")
     if result:
-        classes=st.multiselect("Classifications",["Contradiction","Agreement","Neutral","Needs Review"],default=["Contradiction","Needs Review"])
-        descending=st.checkbox("Highest contradiction probability first",True)
-        rows=sorted([r for r in result["results"] if r["classification"] in classes],key=lambda r:r["probabilities"]["contradiction"],reverse=descending)
-        st.caption(f"{len(rows)} matching pairs. Text highlighting marks token differences, not proven causes.")
-        page_number=st.number_input("Results page (20 pairs per page)",1,max(1,(len(rows)+19)//20),1)
-        comparison_cards(rows[(page_number-1)*20:page_number*20])
+        if result.get("analysis_version")!="financial-v2":
+            st.warning("This saved analysis predates the financial-policy fixes. Rebuild the index and rerun; its old scores are historical only.")
+        counts=Counter(r["classification"] for r in result["results"])
+        st.write(f'{counts["Contradiction"]} potential conflicts | {counts["Needs Review"]} need review | {counts["Policy Change"]} policy changes | {result.get("rejected_pairs",0)} unrelated candidates rejected')
+        classes=st.multiselect("Classifications",["Contradiction","Agreement","Neutral","Needs Review","Policy Change"],default=["Contradiction","Needs Review"]+(["Policy Change"] if result.get("mode")=="differences" else []))
+        topics=sorted({r.get("topic","unknown") for r in result["results"]})
+        selected_topics=st.multiselect("Filter by policy topic",topics,default=topics)
+        rows=[r for r in result["results"] if r["classification"] in classes and r.get("topic","unknown") in selected_topics]
+        for label,title in [("Contradiction","Potential conflicts"),("Needs Review","Needs Review"),("Policy Change","Policy Changes"),("Agreement","Agreements"),("Neutral","Neutral results")]:
+            group=[r for r in rows if r["classification"]==label]
+            if group:
+                st.subheader(f"{title} ({len(group)})")
+                comparison_cards(group[:20])
+                if len(group)>20:st.caption("Showing the first 20 pairs in this group. Export the full report for all results.")
+        if debug and result.get("diagnostics"):
+            with st.expander("Candidate rejection diagnostics"):st.json(result["diagnostics"])
+
 elif page=="Ask About Documents":
     question=st.text_input("Ask a question",placeholder="Which documents contain conflicting deadlines?")
     if st.button("Find supporting evidence",disabled=len(question)<3):
@@ -181,16 +234,18 @@ elif page=="Ask About Documents":
         if answer:
             st.write(answer["answer"])
             for evidence in answer["evidence"]:
-                st.markdown(f'**{evidence["filename"]}** ? Page {evidence["page"] or "N/A"} ? similarity {evidence["similarity"]:.2f}')
+                st.markdown(f'**{evidence["filename"]}** | Page {evidence["page"] or "N/A"} | similarity {evidence["similarity"]:.2f}')
                 st.info(evidence["text"])
             comparison_cards(answer.get("conflicts",[]))
 elif page=="Evaluation Dashboard":
-    dataset=st.selectbox("Benchmark",["multinli","snli","documents"])
+    dataset=st.selectbox("Benchmark",["multinli","snli","documents","financial"])
     split=st.selectbox("Validation split",["validation_matched","validation_mismatched"]) if dataset=="multinli" else "validation"
+    if dataset=="financial":split=st.selectbox("Financial split",["test","development"])
+    evaluation_threshold=st.slider("Evaluation contradiction threshold",.5,1.,.95 if dataset=="financial" else .75,.01)
     count=st.select_slider("Cached sentence-pair sample size",[300,600,900],value=300)
     st.caption("Download the selected official validation sample using scripts.download_datasets first. Document evaluation uses the separately labeled synthetic benchmark.")
     if st.button("Run evaluation",type="primary"):
-        job=data("POST","/evaluation/run",json=dict(dataset=dataset,split=split,count=count))
+        job=data("POST","/evaluation/run",json=dict(dataset=dataset,split=split,count=count,threshold=evaluation_threshold))
         if job:st.session_state["evaluation_job"]=job["id"]
     job_panel("evaluation")
 elif page=="Export Reports":

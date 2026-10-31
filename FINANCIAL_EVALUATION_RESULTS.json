@@ -1,0 +1,214 @@
+{
+  "date": "2026-10-31",
+  "tests_passed": 42,
+  "benchmark_sha256": "c582409b8385dbf00c1829700175a595a839bdeaacfd0dc7759d1601a033efa8",
+  "synthetic": true,
+  "development_pairs": 25,
+  "test_pairs": 25,
+  "before_threshold": 0.75,
+  "after_threshold": 0.95,
+  "min_similarity": 0.35,
+  "before_test": {
+    "count": 25,
+    "precision": 0.6923076923076923,
+    "recall": 1.0,
+    "f1": 0.8181818181818182,
+    "true_positives": 9,
+    "false_positives": 4,
+    "false_negatives": 0,
+    "false_positive_rate": 0.25,
+    "labels": [
+      "Contradiction",
+      "Agreement",
+      "Neutral",
+      "Needs Review",
+      "Policy Change"
+    ],
+    "confusion_matrix": [
+      [
+        9,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        5,
+        0,
+        1,
+        0
+      ],
+      [
+        2,
+        0,
+        0,
+        4,
+        0
+      ],
+      [
+        1,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0,
+        1,
+        0
+      ]
+    ]
+  },
+  "after_test": {
+    "count": 25,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "true_positives": 9,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "false_positive_rate": 0.0,
+    "labels": [
+      "Contradiction",
+      "Agreement",
+      "Neutral",
+      "Needs Review",
+      "Policy Change"
+    ],
+    "confusion_matrix": [
+      [
+        9,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        6,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        5,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        2,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        2
+      ]
+    ]
+  },
+  "raw_nli": {
+    "count": 21,
+    "accuracy": 0.9047619047619048,
+    "per_class": {
+      "contradiction": {
+        "precision": 0.8181818181818182,
+        "recall": 1.0,
+        "f1-score": 0.9,
+        "support": 9.0
+      },
+      "entailment": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 6.0
+      },
+      "neutral": {
+        "precision": 1.0,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.8,
+        "support": 6.0
+      },
+      "accuracy": 0.9047619047619048,
+      "macro avg": {
+        "precision": 0.9393939393939394,
+        "recall": 0.8888888888888888,
+        "f1-score": 0.9,
+        "support": 21.0
+      },
+      "weighted avg": {
+        "precision": 0.922077922077922,
+        "recall": 0.9047619047619048,
+        "f1-score": 0.8999999999999999,
+        "support": 21.0
+      }
+    },
+    "labels": [
+      "contradiction",
+      "entailment",
+      "neutral"
+    ],
+    "confusion_matrix": [
+      [
+        9,
+        0,
+        0
+      ],
+      [
+        0,
+        6,
+        0
+      ],
+      [
+        2,
+        0,
+        4
+      ]
+    ]
+  },
+  "end_to_end": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "false_positives": 0,
+    "false_negatives": 0,
+    "retrieval_recall_at_5": 1.0,
+    "post_filter_recall_at_5": 1.0,
+    "candidate_rejection_rate": 0.8529411764705882,
+    "candidate_pairs": 5,
+    "retrieved_pairs": 34,
+    "nli_pairs": 5,
+    "average_analysis_seconds": 0.6848928999970667
+  },
+  "novapay_before": {
+    "Contradiction": 22,
+    "Needs Review": 86,
+    "Neutral": 52,
+    "Agreement": 18
+  },
+  "novapay_after": {
+    "Policy Change": 7,
+    "Needs Review": 4,
+    "Agreement": 7
+  },
+  "novapay_retrieved_pairs": 97,
+  "novapay_rejected_pairs": 79,
+  "novapay_nli_pairs": 14,
+  "artifacts": {
+    "baseline": "data/results/financial_before.json",
+    "pair_after": "data/results/financial_after.json",
+    "final_evaluation": "data/results/evaluation_223e48c6bfe641fab496d27213f8970b.json",
+    "novapay_before": "data/results/novapay_before.json",
+    "novapay_after": "data/results/novapay_after.json"
+  },
+  "limitations": "Small manually authored synthetic benchmark; related templates overlap across development/test. End-to-end examples derive from the test set and are not a second independent corpus. Perfect contradiction precision here is not a general accuracy claim."
+}
